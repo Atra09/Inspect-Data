@@ -1,0 +1,175 @@
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import { Listbox } from '@headlessui/react';
+import { ChevronDown, Check, Search } from 'lucide-react';
+
+export default function CustomSelect({
+  options = [],
+  selected,
+  onChange,
+  placeholder = 'Pilih Opsi',
+  searchable = false,
+  className = '',
+}) {
+  const [search, setSearch] = useState('');
+  const [tooltip, setTooltip] = useState(null);
+  const [coords, setCoords] = useState(null);
+  const buttonRef = useRef(null);
+  const timerRef = useRef(null);
+
+  const selectedOption = useMemo(
+    () => options.find((o) => String(o.value) === String(selected)),
+    [options, selected]
+  );
+  const displayLabel = selectedOption ? selectedOption.label : placeholder;
+
+  const filteredOptions = useMemo(
+    () =>
+      searchable && search.trim()
+        ? options.filter((o) => String(o.label).toLowerCase().includes(search.toLowerCase()))
+        : options,
+    [options, searchable, search]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const updateCoords = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + 6,
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+  };
+
+  const handleShow = (label) => {
+    if (!label || label === placeholder) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    updateCoords();
+    setTooltip(label);
+    timerRef.current = setTimeout(() => setTooltip(null), 2500);
+  };
+
+  const handleHide = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setTooltip(null), 1200);
+  };
+
+  return (
+    <Listbox value={selected} onChange={onChange}>
+      {({ open }) => (
+        <div className={`relative inline-block max-w-full ${className}`}>
+          <Listbox.Button
+            ref={buttonRef}
+            onClick={updateCoords}
+            onPointerDown={updateCoords}
+            onTouchStart={() => handleShow(displayLabel)}
+            onTouchEnd={handleHide}
+            onMouseEnter={() => handleShow(displayLabel)}
+            onMouseLeave={() => {
+              if (timerRef.current) clearTimeout(timerRef.current);
+              setTooltip(null);
+            }}
+            className="relative h-10 sm:h-11 min-w-[100px] max-w-full cursor-pointer rounded-xl border border-slate-300 bg-white px-3 sm:px-3.5 py-2 text-left text-xs sm:text-sm shadow-xs focus:border-[#0284C7] focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20 inline-flex items-center justify-between gap-1.5 sm:gap-2 transition-all w-full"
+          >
+            <span className={`block truncate ${selectedOption ? 'text-slate-800 font-semibold' : 'text-slate-400 font-medium'}`}>
+              {displayLabel}
+            </span>
+            <ChevronDown className="h-4 w-4 text-slate-500 shrink-0 pointer-events-none" />
+          </Listbox.Button>
+
+          {/* Tooltip rendered via portal at z-100000 at exact same position so it sits ON TOP of Listbox.Options (z-99999) */}
+          {tooltip && coords && createPortal(
+            <div
+              style={{
+                position: 'fixed',
+                top: `${coords.top}px`,
+                left: `${coords.left + coords.width / 2}px`,
+                transform: 'translateX(-50%)',
+                zIndex: 100000,
+              }}
+              className="whitespace-nowrap bg-white text-slate-800 text-xs font-semibold px-3.5 py-2 rounded-xl shadow-2xl border border-sky-200 animate-in fade-in zoom-in-95 duration-150 pointer-events-none"
+            >
+              <span>{tooltip}</span>
+            </div>,
+            document.body
+          )}
+
+          {/* Dropdown Options rendered via portal at z-99999 */}
+          {open && coords && createPortal(
+            <div
+              style={{
+                position: 'fixed',
+                top: `${coords.top}px`,
+                left: `${coords.left}px`,
+                width: `${coords.width}px`,
+                zIndex: 99999,
+              }}
+              className="animate-in fade-in zoom-in-95 duration-150"
+            >
+              <Listbox.Options
+                static
+                className="max-h-60 overflow-auto rounded-2xl border border-slate-200 bg-white py-1 text-xs sm:text-sm shadow-2xl ring-1 ring-black/5 focus:outline-none"
+              >
+                {searchable && (
+                  <div className="p-2 border-b border-slate-100 sticky top-0 bg-white z-10">
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Cari..."
+                        className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-[#0284C7] bg-slate-50/50"
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
+                )}
+                {filteredOptions.length === 0 ? (
+                  <div className="py-2.5 px-4 text-xs text-slate-400 font-medium text-center">Tidak ditemukan</div>
+                ) : (
+                  filteredOptions.map((opt, idx) => (
+                    <Listbox.Option
+                      key={opt.value || idx}
+                      value={opt.value}
+                      onTouchStart={() => handleShow(opt.label)}
+                      onTouchEnd={handleHide}
+                      onMouseEnter={() => handleShow(opt.label)}
+                      onMouseLeave={() => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                        setTooltip(null);
+                      }}
+                      className={({ active }) => `relative cursor-pointer select-none py-2.5 pl-9 pr-4 ${active ? 'bg-sky-50 text-[#0284C7]' : 'text-slate-700'}`}
+                    >
+                      {({ selected: isSelected }) => (
+                        <>
+                          <span className={`block truncate ${isSelected ? 'font-semibold text-[#0284C7]' : 'font-normal'}`}>
+                            {opt.label}
+                          </span>
+                          {isSelected && (
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-2.5 text-[#0284C7]">
+                              <Check className="h-4 w-4" />
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </Listbox.Option>
+                  ))
+                )}
+              </Listbox.Options>
+            </div>,
+            document.body
+          )}
+        </div>
+      )}
+    </Listbox>
+  );
+}
