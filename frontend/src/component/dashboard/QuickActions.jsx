@@ -31,8 +31,8 @@ export default function QuickActions() {
       action: () => navigate('/manifest'),
     },
     {
-      title: 'Cetak Laporan SPB',
-      desc: 'Rekap surat persetujuan',
+      title: 'Cetak Laporan',
+      desc: 'Rekap laporan aktivitas',
       icon: Printer,
       color: 'bg-gradient-to-r from-amber-500 to-orange-600',
       shadow: 'shadow-amber-500/20',

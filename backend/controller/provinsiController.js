@@ -1,5 +1,6 @@
 const { provinsi, negara, kabupaten } = require("../model/association");
 const { Op } = require("sequelize");
+const { createLog } = require("../utils/logHelper");
 
 const getProvinsi = async (req, res) => {
   let search = (req.query.search || "").trim();
@@ -26,6 +27,7 @@ const storeProvinsi = async (req, res) => {
       nama_provinsi: nama_provinsi.trim(),
       id_negara: id_negara || null,
     });
+    await createLog(req, "CREATE", "Provinsi", `Menambahkan master provinsi baru: '${newProv.nama_provinsi}'`);
     return res.status(200).json({ msg: "Berhasil menambahkan data provinsi", data: newProv });
   } catch (error) {
     console.error("STORE PROVINSI ERROR:", error);
@@ -46,6 +48,7 @@ const updateProvinsi = async (req, res) => {
     );
     if (updatedCount === 0) return res.status(404).json({ msg: "Data tidak ditemukan" });
 
+    await createLog(req, "UPDATE", "Provinsi", `Memperbarui data provinsi ID: ${id} ('${nama_provinsi.trim()}')`);
     return res.status(200).json({ msg: "Berhasil memperbarui data provinsi" });
   } catch (error) {
     console.error("UPDATE PROVINSI ERROR:", error);
@@ -64,6 +67,7 @@ const deleteProvinsi = async (req, res) => {
     if (countKab > 0) return res.status(400).json({ msg: `Provinsi '${target.nama_provinsi}' tidak dapat dihapus karena digunakan pada ${countKab} kabupaten/kota.` });
 
     await target.destroy();
+    await createLog(req, "DELETE", "Provinsi", `Menghapus data provinsi: '${target.nama_provinsi}' (ID: ${id})`);
     return res.status(200).json({ msg: "Berhasil menghapus data provinsi" });
   } catch (error) {
     console.error("DELETE PROVINSI ERROR:", error);

@@ -1,5 +1,6 @@
 const { negara, provinsi } = require("../model/association");
 const { Op } = require("sequelize");
+const { createLog } = require("../utils/logHelper");
 
 const getNegara = async (req, res) => {
   let search = (req.query.search || "").trim();
@@ -22,6 +23,7 @@ const storeNegara = async (req, res) => {
       nama_negara: nama_negara.trim(),
       kode_negara: kode_negara ? kode_negara.trim() : null,
     });
+    await createLog(req, "CREATE", "Negara", `Menambahkan master negara baru: '${newNegara.nama_negara}'`);
     return res.status(200).json({ msg: "Berhasil menambahkan data negara", data: newNegara });
   } catch (error) {
     console.error("STORE NEGARA ERROR:", error);
@@ -42,6 +44,7 @@ const updateNegara = async (req, res) => {
     );
     if (updatedCount === 0) return res.status(404).json({ msg: "Data tidak ditemukan" });
 
+    await createLog(req, "UPDATE", "Negara", `Memperbarui data negara ID: ${id} ('${nama_negara.trim()}')`);
     return res.status(200).json({ msg: "Berhasil memperbarui data negara" });
   } catch (error) {
     console.error("UPDATE NEGARA ERROR:", error);
@@ -60,6 +63,7 @@ const deleteNegara = async (req, res) => {
     if (countProv > 0) return res.status(400).json({ msg: `Negara '${target.nama_negara}' tidak dapat dihapus karena digunakan pada ${countProv} provinsi.` });
 
     await target.destroy();
+    await createLog(req, "DELETE", "Negara", `Menghapus data negara: '${target.nama_negara}' (ID: ${id})`);
     return res.status(200).json({ msg: "Berhasil menghapus data negara" });
   } catch (error) {
     console.error("DELETE NEGARA ERROR:", error);

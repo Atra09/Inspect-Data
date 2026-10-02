@@ -7,10 +7,7 @@ import InputField from '../../component/form/InputField';
 import Select from '../../component/form/Select';
 
 const INITIAL_FORM = {
-  ppk: '',
   no_urut: '',
-  no_spb: '',
-  no_spb_asal: '',
   tanggal_clearance: '',
   pukul_agen_clearance: '',
   id_kapal: '',
@@ -56,19 +53,17 @@ export default function FormManifest() {
     nahkoda: [],
     pelabuhan: [],
     agen: [],
-    spbAsal: [],
   });
 
   // Fetch all dropdown options in parallel
   const fetchDropdowns = useCallback(async () => {
     try {
       const headers = getAuthHeader();
-      const [resKapal, resNahkoda, resPelabuhan, resAgen, resSpbAsal] = await Promise.allSettled([
+      const [resKapal, resNahkoda, resPelabuhan, resAgen] = await Promise.allSettled([
         fetch('/api/kapal/all', { headers }).then((r) => (r.ok ? r : fetch('/api/kapal', { headers }))),
         fetch('/api/nahkoda/all', { headers }),
         fetch('/api/pelabuhan/all', { headers }),
         fetch('/api/agen/all', { headers }),
-        fetch('/api/spb-asal/all', { headers }),
       ]);
 
       const parse = async (res) => (res.status === 'fulfilled' && res.value.ok ? (await res.value.json()).datas || (await res.value.json()).data || [] : []);
@@ -78,7 +73,6 @@ export default function FormManifest() {
         nahkoda: await parse(resNahkoda),
         pelabuhan: await parse(resPelabuhan),
         agen: await parse(resAgen),
-        spbAsal: await parse(resSpbAsal),
       });
     } catch (err) {
       console.error('Fetch Dropdowns Error:', err);
@@ -158,18 +152,8 @@ export default function FormManifest() {
 
   // Formatted options map
   const selectOpts = useMemo(() => ({
-    ppk: [
-      { value: '', label: 'Pilih Jenis PPK' },
-      { value: '27', label: '27' },
-      { value: '29', label: '29' },
-    ],
-    spbAsal: [
-      { value: '', label: 'Pilih atau ketik No SPB Asal...' },
-      ...options.spbAsal.map((s) => ({
-        value: s.kode_spb || s.no_spb_asal,
-        label: `${s.kode_spb || s.no_spb_asal} ${s.asal ? `- ${s.asal}` : ''}`,
-      })),
-    ],
+
+
     kapal: [
       { value: '', label: 'Pilih Kapal' },
       ...options.kapal.map((k) => ({ value: k.id_kapal, label: k.nama_kapal })),
@@ -228,22 +212,13 @@ export default function FormManifest() {
             <span>Data Clearance</span>
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField label="Jenis PPK">
-              <Select name="ppk" value={formData.ppk} onChange={handleChange} options={selectOpts.ppk} placeholder="Pilih Jenis PPK" />
-            </FormField>
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             <FormField label="Nomor Register">
               <InputField type="text" name="no_urut" value={formData.no_urut} onChange={handleChange} placeholder="Nomor Register" />
             </FormField>
-            <FormField label="Nomor SPB">
-              <InputField type="text" name="no_spb" value={formData.no_spb} onChange={handleChange} placeholder="0023403" />
-            </FormField>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField label="No SPB Asal">
-              <Select name="no_spb_asal" value={formData.no_spb_asal} onChange={handleChange} options={selectOpts.spbAsal} placeholder="Pilih atau ketik No SPB Asal..." />
-            </FormField>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Tanggal Clearance">
               <InputField type="date" name="tanggal_clearance" value={formData.tanggal_clearance} onChange={handleChange} />
             </FormField>

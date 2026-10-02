@@ -1,5 +1,6 @@
 const { agen, manifest } = require("../model/association");
 const { Op } = require("sequelize");
+const { createLog } = require("../utils/logHelper");
 
 const getAgen = async (req, res) => {
   let search = (req.query.search || "").trim();
@@ -42,6 +43,7 @@ const storeAgen = async (req, res) => {
     }
 
     const newAgen = await agen.create({ nama_agen: nama_agen.trim() });
+    await createLog(req, "CREATE", "Agen", `Menambahkan master agen pelayaran baru: '${newAgen.nama_agen}'`);
     return res.status(200).json({ msg: "Berhasil menambahkan data agen", data: newAgen });
   } catch (error) {
     console.error("storeAgen Error:", error);
@@ -67,6 +69,7 @@ const updateAgen = async (req, res) => {
 
     if (updatedCount === 0) return res.status(404).json({ msg: "Data tidak ditemukan" });
 
+    await createLog(req, "UPDATE", "Agen", `Memperbarui data agen ID: ${id} ('${nama_agen.trim()}')`);
     return res.status(200).json({ msg: "Berhasil memperbarui data agen" });
   } catch (error) {
     console.error("updateAgen Error:", error);
@@ -93,6 +96,7 @@ const deleteAgen = async (req, res) => {
     }
 
     await agen.destroy({ where: { id_agen: id } });
+    await createLog(req, "DELETE", "Agen", `Menghapus data agen pelayaran: '${agenData.nama_agen}' (ID: ${id})`);
     return res.status(200).json({ msg: "Berhasil menghapus data agen" });
   } catch (error) {
     console.error("deleteAgen Error:", error);

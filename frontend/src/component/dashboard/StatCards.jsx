@@ -1,47 +1,107 @@
-import React from 'react';
-import { Ship, CheckCircle2, AlertTriangle, Anchor, ArrowUpRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Ship, CheckCircle2, AlertTriangle, Anchor } from 'lucide-react';
 
 export default function StatCards() {
+  const [statsData, setStatsData] = useState({
+    totalClearance: 0,
+    kapalTambat: 0,
+    inspeksiLolos: 0,
+    pendingAudit: 0,
+    totalPenumpang: 0,
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const [resManifest, resKapal] = await Promise.allSettled([
+          fetch('/api/manifest', { headers }),
+          fetch('/api/kapal/all', { headers }),
+        ]);
+
+        let manifestList = [];
+        let kapalCount = 0;
+
+        if (resManifest.status === 'fulfilled' && resManifest.value.ok) {
+          const resJson = await resManifest.value.json();
+          manifestList = resJson.datas || resJson.data || [];
+        }
+
+        if (resKapal.status === 'fulfilled' && resKapal.value.ok) {
+          const kapalJson = await resKapal.value.json();
+          const listKapal = kapalJson.datas || kapalJson.data || [];
+          kapalCount = listKapal.length;
+        }
+
+        const totalClearance = manifestList.length;
+        const pendingAudit = manifestList.filter(
+          (m) => m.status_inspeksi === 'pending' || m.count_pending > 0
+        ).length;
+        const inspeksiLolos = manifestList.filter(
+          (m) => m.status_inspeksi === 'selesai'
+        ).length;
+        const totalPenumpang = manifestList.reduce(
+          (acc, m) => acc + (m.total_penumpang || 0),
+          0
+        );
+
+        setStatsData({
+          totalClearance,
+          kapalTambat: kapalCount,
+          inspeksiLolos,
+          pendingAudit,
+          totalPenumpang,
+        });
+      } catch (err) {
+        console.error('Fetch Stats Error:', err);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   const stats = [
     {
-      title: 'Total Clearance Kapal',
-      value: '142',
-      unit: 'Kapal minggu ini',
-      change: '+12.5%',
+      title: 'Total Sesi Manifest',
+      value: String(statsData.totalClearance),
+      unit: 'Data Terdaftar',
+      change: `${statsData.totalClearance} Clearance`,
       isPositive: true,
       icon: Ship,
       iconBg: 'bg-[#0284C7]/10 text-[#0284C7]',
       borderColor: 'border-[#0284C7]/20',
     },
     {
-      title: 'Kapal Berlabuh di Dermaga',
-      value: '38',
-      unit: 'Status Tambat',
-      change: '+4 Kapal hari ini',
+      title: 'Total Kapal Terdaftar',
+      value: String(statsData.kapalTambat),
+      unit: 'Master Kapal',
+      change: `${statsData.kapalTambat} Kapal`,
       isPositive: true,
       icon: Anchor,
       iconBg: 'bg-sky-500/10 text-sky-600',
       borderColor: 'border-sky-200',
     },
     {
-      title: 'Inspeksi Lapangan Lolos',
-      value: '98.4%',
-      unit: 'Verifikasi Fisik & Dokumen',
-      change: '104 Lolos',
+      title: 'Inspeksi Manifest Selesai',
+      value: String(statsData.inspeksiLolos),
+      unit: 'Verifikasi Penumpang',
+      change: `${statsData.inspeksiLolos} Terverifikasi`,
       isPositive: true,
       icon: CheckCircle2,
       iconBg: 'bg-emerald-500/10 text-emerald-600',
       borderColor: 'border-emerald-200',
     },
     {
-      title: 'Flag Peringatan Manifest',
-      value: '3',
-      unit: 'Membutuhkan Audit',
-      change: 'Perlu Verifikasi',
-      isPositive: false,
+      title: 'Pending Verifikasi',
+      value: String(statsData.pendingAudit),
+      unit: 'Butuh Audit',
+      change: statsData.pendingAudit > 0 ? 'Perlu Verifikasi' : 'Semua Selesai',
+      isPositive: statsData.pendingAudit === 0,
       icon: AlertTriangle,
-      iconBg: 'bg-amber-500/10 text-amber-600',
-      borderColor: 'border-amber-200',
+      iconBg: statsData.pendingAudit > 0 ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-100 text-slate-500',
+      borderColor: statsData.pendingAudit > 0 ? 'border-amber-200' : 'border-slate-200',
     },
   ];
 
@@ -78,7 +138,6 @@ export default function StatCards() {
                   }`}
                 >
                   {stat.change}
-                  {stat.isPositive && <ArrowUpRight size={12} />}
                 </span>
               </div>
             </div>

@@ -1,7 +1,8 @@
 const fs = require("fs");
 const path = require("path");
-const { manifest, kapal, nahkoda, agen, pelabuhan, spb, penumpang } = require("../model/association");
+const { manifest, kapal, nahkoda, agen, pelabuhan, penumpang } = require("../model/association");
 const { Op } = require("sequelize");
+const { createLog } = require("../utils/logHelper");
 
 const formatManifestItem = (m) => {
   const plain = m.get ? m.get({ plain: true }) : m;
@@ -17,8 +18,6 @@ const formatManifestItem = (m) => {
 
   return {
     ...plain,
-    no_spb: plain.spb?.no_spb || plain.no_spb || "",
-    no_spb_asal: plain.spb?.no_spb_asal || plain.no_spb_asal || "",
     total_penumpang: totalPassengers,
     count_pending: countPending,
     count_selesai: countSelesai,
@@ -45,7 +44,6 @@ const getManifest = async (req, res) => {
         { model: kapal, as: "kapal" },
         { model: nahkoda, as: "nahkoda" },
         { model: agen, as: "agen" },
-        { model: spb, as: "spb" },
         { model: pelabuhan, as: "pelabuhan_asal" },
         { model: pelabuhan, as: "pelabuhan_sandar" },
         { model: pelabuhan, as: "pelabuhan_tolak" },
@@ -71,7 +69,6 @@ const getManifestById = async (req, res) => {
         { model: kapal, as: "kapal" },
         { model: nahkoda, as: "nahkoda" },
         { model: agen, as: "agen" },
-        { model: spb, as: "spb" },
         { model: pelabuhan, as: "pelabuhan_asal" },
         { model: pelabuhan, as: "pelabuhan_sandar" },
         { model: pelabuhan, as: "pelabuhan_tolak" },
@@ -93,18 +90,16 @@ const getManifestById = async (req, res) => {
 const storeManifest = async (req, res) => {
   try {
     const body = { ...req.body };
-    const { no_spb, no_spb_asal } = body;
-
-    // Handle SPB creation
-    if (no_spb || no_spb_asal) {
-      const spbRecord = await spb.create({
-        no_spb: no_spb ? String(no_spb).trim() : null,
-        no_spb_asal: no_spb_asal ? String(no_spb_asal).trim() : null,
-      });
-      body.id_spb = spbRecord.id_spb;
-    }
 
     const newManifest = await manifest.create(body);
+
+    await createLog(
+      req,
+      "CREATE",
+      "Manifest",
+      `Membuat sesi manifest baru (ID: ${newManifest.id_manifest}, Status: ${newManifest.status_pelayaran || "Aktif"})`
+    );
+
     return res.status(200).json({ msg: "Berhasil menambahkan data manifest", data: newManifest });
   } catch (error) {
     console.error("storeManifest Error:", error);
@@ -119,27 +114,16 @@ const updateManifest = async (req, res) => {
     if (!target) return res.status(404).json({ msg: "Data manifest tidak ditemukan" });
 
     const body = { ...req.body };
-    const { no_spb, no_spb_asal } = body;
-
-    if (no_spb !== undefined || no_spb_asal !== undefined) {
-      if (target.id_spb) {
-        await spb.update(
-          {
-            no_spb: no_spb ? String(no_spb).trim() : undefined,
-            no_spb_asal: no_spb_asal ? String(no_spb_asal).trim() : undefined,
-          },
-          { where: { id_spb: target.id_spb } }
-        );
-      } else {
-        const newSpb = await spb.create({
-          no_spb: no_spb ? String(no_spb).trim() : null,
-          no_spb_asal: no_spb_asal ? String(no_spb_asal).trim() : null,
-        });
-        body.id_spb = newSpb.id_spb;
-      }
-    }
 
     await manifest.update(body, { where: { id_manifest: id } });
+
+    await createLog(
+      req,
+      "UPDATE",
+      "Manifest",
+      `Memperbarui data manifest ID: ${id}`
+    );
+
     return res.status(200).json({ msg: "Berhasil memperbarui data manifest" });
   } catch (error) {
     console.error("updateManifest Error:", error);
@@ -175,13 +159,16 @@ const deleteManifest = async (req, res) => {
     // 3. Hapus seluruh data penumpang di database
     await penumpang.destroy({ where: { id_manifest: id } });
 
-    // 4. Hapus data SPB jika terikat
-    if (target.id_spb) {
-      await spb.destroy({ where: { id_spb: target.id_spb } });
-    }
-
-    // 5. Hapus data manifest
+    // 4. Hapus data manifest
     await manifest.destroy({ where: { id_manifest: id } });
+
+    await createLog(
+      req,
+      "DELETE",
+      "Manifest",
+      `Menghapus manifest ID: ${id} beserta ${listPenumpang.length} data penumpang terikat`
+    );
+
     return res.status(200).json({ msg: "Berhasil menghapus data manifest beserta seluruh data penumpang & foto terkait" });
   } catch (error) {
     console.error("deleteManifest Error:", error);

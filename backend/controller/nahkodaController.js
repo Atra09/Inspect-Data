@@ -1,5 +1,6 @@
 const { nahkoda, manifest } = require("../model/association");
 const { Op } = require("sequelize");
+const { createLog } = require("../utils/logHelper");
 
 const getNahkoda = async (req, res) => {
   let search = (req.query.search || "").trim();
@@ -42,6 +43,7 @@ const storeNahkoda = async (req, res) => {
     }
 
     const newNahkoda = await nahkoda.create({ nama_nahkoda: nama_nahkoda.trim() });
+    await createLog(req, "CREATE", "Nahkoda", `Menambahkan master nahkoda baru: '${newNahkoda.nama_nahkoda}'`);
     return res.status(200).json({ msg: "Berhasil menambahkan data nahkoda", data: newNahkoda });
   } catch (error) {
     console.error("storeNahkoda Error:", error);
@@ -67,6 +69,7 @@ const updateNahkoda = async (req, res) => {
 
     if (updatedCount === 0) return res.status(404).json({ msg: "Data tidak ditemukan" });
 
+    await createLog(req, "UPDATE", "Nahkoda", `Memperbarui data nahkoda ID: ${id} ('${nama_nahkoda.trim()}')`);
     return res.status(200).json({ msg: "Berhasil memperbarui data nahkoda" });
   } catch (error) {
     console.error("updateNahkoda Error:", error);
@@ -93,6 +96,7 @@ const deleteNahkoda = async (req, res) => {
     }
 
     await nahkoda.destroy({ where: { id_nahkoda: id } });
+    await createLog(req, "DELETE", "Nahkoda", `Menghapus data nahkoda: '${nahkodaData.nama_nahkoda}' (ID: ${id})`);
     return res.status(200).json({ msg: "Berhasil menghapus data nahkoda" });
   } catch (error) {
     console.error("deleteNahkoda Error:", error);

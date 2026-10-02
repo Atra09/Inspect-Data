@@ -123,7 +123,7 @@ export default function DetailManifest() {
             <span>Kembali ke Daftar Clearance</span>
           </button>
           <h1 className="text-[22px] font-bold text-slate-900 tracking-tight">
-            Detail SPB: {data.no_spb || data.spb?.no_spb || '-'}
+            Detail Manifest #{id}
           </h1>
         </div>
 
@@ -151,7 +151,7 @@ export default function DetailManifest() {
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-[13px] font-semibold rounded-xl transition-colors cursor-pointer"
           >
             <Printer size={15} />
-            <span>Cetak SPB</span>
+            <span>Cetak</span>
           </button>
         </div>
       </div>
@@ -161,18 +161,10 @@ export default function DetailManifest() {
         <h2 className="text-[18px] font-bold text-slate-900">Informasi Umum & Kapal</h2>
 
         {/* ROW 1: CLEARANCE INFO */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-[14px]">
-          <div>
-            <p className="text-slate-400 font-normal mb-1 text-[14px]">Jenis PPK</p>
-            <p className="font-bold text-slate-800 text-[14px]">{data.ppk || '-'}</p>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 text-[14px]">
           <div>
             <p className="text-slate-400 font-normal mb-1 text-[14px]">Nomor Register</p>
             <p className="font-bold text-slate-800 text-[14px]">{data.no_urut || '-'}</p>
-          </div>
-          <div>
-            <p className="text-slate-400 font-normal mb-1 text-[14px]">No SPB Asal</p>
-            <p className="font-bold text-slate-800 text-[14px]">{data.no_spb_asal || data.spb?.no_spb_asal || '-'}</p>
           </div>
           <div>
             <p className="text-slate-400 font-normal mb-1 text-[14px]">Tanggal Clearance</p>

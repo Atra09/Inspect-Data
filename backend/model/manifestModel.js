@@ -9,8 +9,6 @@ const manifest = db.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    ppk: DataTypes.ENUM("27", "29"),
-    id_spb: DataTypes.INTEGER,
     no_urut: DataTypes.STRING,
     id_kapal: DataTypes.INTEGER,
     id_nahkoda: DataTypes.INTEGER,

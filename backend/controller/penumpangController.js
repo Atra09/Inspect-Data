@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const penumpang = require("../model/penumpangModel");
 const manifest = require("../model/manifestModel");
+const { createLog } = require("../utils/logHelper");
 
 // Helper to safely normalize gender strings without truncation errors
 const normalizeJenisKelamin = (val) => {
@@ -60,6 +61,13 @@ const uploadScanPenumpang = async (req, res) => {
       tipe_penumpang: "naik",
       status_verifikasi: "pending",
     });
+
+    await createLog(
+      req,
+      "INSPEKSI",
+      "Penumpang",
+      `Pemindaian KTP & Registrasi Inspeksi: "${newRecord.nama_penumpang || "Tanpa Nama"}" (NIK: ${newRecord.nik || "-"})`
+    );
 
     return res.status(201).json({
       status: true,
@@ -169,6 +177,13 @@ const createPenumpang = async (req, res) => {
       status_verifikasi: status_verifikasi || "pending",
     });
 
+    await createLog(
+      req,
+      "CREATE",
+      "Penumpang",
+      `Menambahkan data penumpang baru: "${newPenumpang.nama_penumpang || "Tanpa Nama"}" (NIK: ${newPenumpang.nik || "-"})`
+    );
+
     return res.status(201).json({
       status: true,
       message: "Berhasil menambahkan data penumpang",
@@ -220,6 +235,14 @@ const updatePenumpang = async (req, res) => {
       status_verifikasi: status_verifikasi !== undefined ? status_verifikasi : target.status_verifikasi,
     });
 
+    const aksi = status_verifikasi === "selesai" ? "VERIFIKASI" : "UPDATE";
+    await createLog(
+      req,
+      aksi,
+      "Penumpang",
+      `Mengubah data/status penumpang "${target.nama_penumpang || "Tanpa Nama"}" (ID: ${id}, Status: ${target.status_verifikasi})`
+    );
+
     return res.status(200).json({
       status: true,
       message: "Berhasil mengupdate data penumpang",
@@ -248,6 +271,13 @@ const deletePenumpang = async (req, res) => {
     }
 
     await target.destroy();
+
+    await createLog(
+      req,
+      "DELETE",
+      "Penumpang",
+      `Menghapus data penumpang "${target.nama_penumpang || "Tanpa Nama"}" (ID: ${id})`
+    );
 
     return res.status(200).json({
       status: true,

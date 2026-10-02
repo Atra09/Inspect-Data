@@ -15,6 +15,10 @@ const configDb = async () => {
   try {
     await db.authenticate();
     console.log('DATABASE TERHUBUNG');
+    // Ensure log_aktivitas table is created if it does not exist
+    const logAktivitas = require('../model/logAktivitasModel');
+    await logAktivitas.sync();
+    console.log('🟢 Table log_aktivitas synchronized');
   } catch (error) {
     console.error('❌ DATABASE CONNECTION ERROR:', error.message);
   }

@@ -1,5 +1,6 @@
 const { kapal, jenis, asal_kapal } = require("../model/association");
 const { Op } = require("sequelize");
+const { createLog } = require("../utils/logHelper");
 
 // --- KAPAL CRUD ---
 const getKapal = async (req, res) => {
@@ -67,6 +68,13 @@ const storeKapal = async (req, res) => {
       id_asal_kapal: id_asal_kapal ? Number(id_asal_kapal) : null,
     });
 
+    await createLog(
+      req,
+      "CREATE",
+      "Kapal",
+      `Menambahkan kapal baru: "${newKapal.nama_kapal}" (IMO: ${newKapal.nomor_imo || "-"})`
+    );
+
     return res.status(200).json({ msg: "Berhasil menambahkan data kapal", data: newKapal });
   } catch (error) {
     console.error("storeKapal Error:", error);
@@ -96,6 +104,13 @@ const updateKapal = async (req, res) => {
       { where: { id_kapal: req.params.id } }
     );
 
+    await createLog(
+      req,
+      "UPDATE",
+      "Kapal",
+      `Memperbarui data kapal: "${nama_kapal || targetKapal.nama_kapal}" (ID: ${req.params.id})`
+    );
+
     return res.status(200).json({ msg: "Berhasil memperbarui data kapal" });
   } catch (error) {
     console.error("updateKapal Error:", error);
@@ -109,6 +124,14 @@ const deleteKapal = async (req, res) => {
     if (!targetKapal) return res.status(404).json({ msg: "data tidak ditemukan" });
 
     await kapal.destroy({ where: { id_kapal: req.params.id } });
+
+    await createLog(
+      req,
+      "DELETE",
+      "Kapal",
+      `Menghapus data kapal: "${targetKapal.nama_kapal}" (ID: ${req.params.id})`
+    );
+
     return res.status(200).json({ msg: "Berhasil menghapus data kapal" });
   } catch (error) {
     console.error("deleteKapal Error:", error);
@@ -133,6 +156,7 @@ const storeJenis = async (req, res) => {
     const { nama_jenis } = req.body;
     if (!nama_jenis || !nama_jenis.trim()) return res.status(400).json({ msg: "Nama jenis kapal wajib diisi" });
     const data = await jenis.create({ nama_jenis: nama_jenis.trim() });
+    await createLog(req, "CREATE", "Jenis Kapal", `Menambahkan jenis kapal baru: '${data.nama_jenis}'`);
     return res.status(200).json({ msg: "Berhasil menambahkan jenis kapal", data });
   } catch (error) {
     return res.status(500).json({ msg: error.message || "Gagal menambahkan jenis kapal" });
@@ -143,6 +167,7 @@ const updateJenis = async (req, res) => {
   try {
     const { nama_jenis } = req.body;
     await jenis.update({ nama_jenis: nama_jenis.trim() }, { where: { id_jenis: req.params.id } });
+    await createLog(req, "UPDATE", "Jenis Kapal", `Memperbarui jenis kapal ID: ${req.params.id} ('${nama_jenis.trim()}')`);
     return res.status(200).json({ msg: "Berhasil memperbarui jenis kapal" });
   } catch (error) {
     return res.status(500).json({ msg: "Gagal memperbarui jenis kapal" });
@@ -152,6 +177,7 @@ const updateJenis = async (req, res) => {
 const deleteJenis = async (req, res) => {
   try {
     await jenis.destroy({ where: { id_jenis: req.params.id } });
+    await createLog(req, "DELETE", "Jenis Kapal", `Menghapus jenis kapal ID: ${req.params.id}`);
     return res.status(200).json({ msg: "Berhasil menghapus jenis kapal" });
   } catch (error) {
     return res.status(500).json({ msg: "Gagal menghapus jenis kapal" });
@@ -175,6 +201,7 @@ const storeAsal = async (req, res) => {
     const { nama_asal_kapal } = req.body;
     if (!nama_asal_kapal || !nama_asal_kapal.trim()) return res.status(400).json({ msg: "Nama kedudukan kapal wajib diisi" });
     const data = await asal_kapal.create({ nama_asal_kapal: nama_asal_kapal.trim() });
+    await createLog(req, "CREATE", "Kedudukan Kapal", `Menambahkan kedudukan kapal baru: '${data.nama_asal_kapal}'`);
     return res.status(200).json({ msg: "Berhasil menambahkan kedudukan kapal", data });
   } catch (error) {
     return res.status(500).json({ msg: error.message || "Gagal menambahkan kedudukan kapal" });
@@ -185,6 +212,7 @@ const updateAsal = async (req, res) => {
   try {
     const { nama_asal_kapal } = req.body;
     await asal_kapal.update({ nama_asal_kapal: nama_asal_kapal.trim() }, { where: { id_asal_kapal: req.params.id } });
+    await createLog(req, "UPDATE", "Kedudukan Kapal", `Memperbarui kedudukan kapal ID: ${req.params.id} ('${nama_asal_kapal.trim()}')`);
     return res.status(200).json({ msg: "Berhasil memperbarui kedudukan kapal" });
   } catch (error) {
     return res.status(500).json({ msg: "Gagal memperbarui kedudukan kapal" });
@@ -194,6 +222,7 @@ const updateAsal = async (req, res) => {
 const deleteAsal = async (req, res) => {
   try {
     await asal_kapal.destroy({ where: { id_asal_kapal: req.params.id } });
+    await createLog(req, "DELETE", "Kedudukan Kapal", `Menghapus kedudukan kapal ID: ${req.params.id}`);
     return res.status(200).json({ msg: "Berhasil menghapus kedudukan kapal" });
   } catch (error) {
     return res.status(500).json({ msg: "Gagal menghapus kedudukan kapal" });

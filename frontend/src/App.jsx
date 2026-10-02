@@ -15,8 +15,8 @@ import VerifikasiPenumpang from './pages/dashboard/VerifikasiPenumpang';
 import AgenMaster from './pages/master/AgenMaster';
 import NahkodaMaster from './pages/master/NahkodaMaster';
 import PelabuhanMaster from './pages/master/PelabuhanMaster';
-import SpbAsalMaster from './pages/master/SpbAsalMaster';
 import DaerahMaster from './pages/master/DaerahMaster';
+import LogAktivitas from './pages/dashboard/LogAktivitas';
 
 // React Error Boundary to catch render errors
 class ErrorBoundary extends Component {
@@ -91,6 +91,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/log-aktivitas" element={<LogAktivitas />} />
               <Route path="/users" element={<UserManagement />} />
               <Route path="/inspeksi" element={<MobileInspection />} />
               <Route path="/manifest" element={<Manifest />} />
@@ -104,8 +105,6 @@ function App() {
               <Route path="/master/nahkoda" element={<NahkodaMaster />} />
               <Route path="/pelabuhan" element={<PelabuhanMaster />} />
               <Route path="/master/pelabuhan" element={<PelabuhanMaster />} />
-              <Route path="/spb-asal" element={<SpbAsalMaster />} />
-              <Route path="/master/spb-asal" element={<SpbAsalMaster />} />
               <Route path="/daerah" element={<DaerahMaster />} />
               <Route path="/master/daerah" element={<DaerahMaster />} />
               <Route path="/negara" element={<DaerahMaster />} />

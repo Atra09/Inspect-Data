@@ -40,21 +40,8 @@ export default function LoginPage() {
     setToast(null);
 
     try {
-      const res = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const resData = await res.json();
-
-      if (!res.ok) {
-        throw new Error(resData.msg || `HTTP Error ${res.status}`);
-      }
-
-      const { token, user } = resData;
+      const res = await axiosInstance.post('/api/users/login', { username, password });
+      const { token, user } = res.data;
 
       if (login) {
         login(token, user);
@@ -73,9 +60,14 @@ export default function LoginPage() {
       navigate('/', { replace: true });
     } catch (error) {
       console.error('Login Error:', error);
-      const rawErrorStr = error.response?.data?.msg || error.message || String(error);
+      const rawErrorStr =
+        error.response?.data?.msg ||
+        error.response?.data?.message ||
+        (error.code === 'ERR_NETWORK' || !error.response
+          ? 'Gagal terhubung ke server backend. Pastikan server backend berjalan.'
+          : error.message || String(error));
       setToast({
-        message: `Error: ${rawErrorStr}`,
+        message: `${rawErrorStr}`,
         type: 'error',
       });
     } finally {

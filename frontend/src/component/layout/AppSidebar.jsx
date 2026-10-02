@@ -27,7 +27,6 @@ const MASTER_SUB_ITEMS = [
   { name: 'Agen', path: '/master/agen' },
   { name: 'Daerah', path: '/master/daerah' },
   { name: 'Pelabuhan', path: '/master/pelabuhan' },
-  { name: 'SPB Asal', path: '/master/spb-asal' },
 ];
 
 export default function AppSidebar() {

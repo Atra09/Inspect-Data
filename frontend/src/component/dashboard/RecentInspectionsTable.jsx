@@ -1,58 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Ship, Eye, Filter, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import DataTable from '../ui/DataTable';
 import ActionMenu from '../common/ActionMenu';
 
 export default function RecentInspectionsTable() {
+  const navigate = useNavigate();
   const [filterStatus, setFilterStatus] = useState('All');
+  const [dataList, setDataList] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const inspectionsData = [
-    {
-      id: 'SPB-2026-0091',
-      vessel: 'KM Mulia Rahayu',
-      imo: 'IMO 982143',
-      cargo: 'General Cargo',
-      agent: 'PT Bahari Nusantara',
-      time: '10:45 WIB',
-      status: 'Disetujui',
-      statusType: 'success',
-    },
-    {
-      id: 'SPB-2026-0090',
-      vessel: 'KM Sumber Laut 02',
-      imo: 'IMO 974120',
-      cargo: 'BBM / Tangker',
-      agent: 'PT Pelayaran Mandiri',
-      time: '09:15 WIB',
-      status: 'Dalam Inspeksi',
-      statusType: 'process',
-    },
-    {
-      id: 'SPB-2026-0089',
-      vessel: 'KM Nusantara Jaya',
-      imo: 'IMO 965411',
-      cargo: 'Sembako & Hasil Tani',
-      agent: 'CV Samudra Indah',
-      time: '08:30 WIB',
-      status: 'Pending Audit',
-      statusType: 'warning',
-    },
-    {
-      id: 'SPB-2026-0088',
-      vessel: 'KM Bintang Bahari',
-      imo: 'IMO 951230',
-      cargo: 'Kayu Olahan',
-      agent: 'PT Lautan Berlian',
-      time: 'Kemarin, 16:20',
-      status: 'Disetujui',
-      statusType: 'success',
-    },
-  ];
+  const fetchInspections = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const res = await fetch('/api/manifest', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        const resData = await res.json();
+        const raw = resData.datas || resData.data || [];
+        
+        const mapped = raw.map((item) => {
+          const statusInspeksi = item.status_inspeksi;
+          let statusLabel = 'Dalam Inspeksi';
+          let statusType = 'process';
+
+          if (statusInspeksi === 'selesai') {
+            statusLabel = 'Disetujui';
+            statusType = 'success';
+          } else if (statusInspeksi === 'pending') {
+            statusLabel = 'Pending Audit';
+            statusType = 'warning';
+          }
+
+          return {
+            raw: item,
+            id: item.no_urut ? `${item.no_urut}` : `REG-${item.id_manifest}`,
+            vessel: item.nama_kapal || item.kapal?.nama_kapal || '-',
+            imo: item.kapal?.gt_kapal ? `GT ${item.kapal.gt_kapal}` : 'Kapal KSOP',
+            cargo: item.status_muatan_berangkat || 'General Cargo',
+            agent: item.nama_agen || item.agen?.nama_agen || item.nama_nahkoda || item.nahkoda?.nama_nahkoda || '-',
+            time: item.pukul_kapal_berangkat || item.pukul_agen_clearance || 'WIB',
+            status: statusLabel,
+            statusType,
+          };
+        });
+
+        setDataList(mapped);
+      } else {
+        setDataList([]);
+      }
+    } catch (err) {
+      console.error('Fetch Inspections Error:', err);
+      setDataList([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchInspections();
+  }, [fetchInspections]);
 
   const filteredData =
     filterStatus === 'All'
-      ? inspectionsData
-      : inspectionsData.filter((item) => item.status === filterStatus);
+      ? dataList
+      : dataList.filter((item) => item.status === filterStatus);
 
   const getStatusBadge = (type, label) => {
     switch (type) {
@@ -85,13 +99,21 @@ export default function RecentInspectionsTable() {
   const columns = [
     {
       key: 'id',
-      label: 'No. Registrasi SPB',
+      label: 'No. Registrasi',
       sortable: true,
       className: 'font-extrabold text-[#0284C7]',
+      render: (val, row) => (
+        <span
+          onClick={() => row.raw?.id_manifest && navigate(`/manifest/detail/${row.raw.id_manifest}`)}
+          className="hover:underline cursor-pointer"
+        >
+          {val}
+        </span>
+      ),
     },
     {
       key: 'vessel',
-      label: 'Nama Kapal / IMO',
+      label: 'Nama Kapal',
       sortable: true,
       render: (val, row) => (
         <div className="flex flex-col">
@@ -114,7 +136,7 @@ export default function RecentInspectionsTable() {
     },
     {
       key: 'time',
-      label: 'Waktu Inspeksi',
+      label: 'Waktu Clearance',
       sortable: true,
       className: 'text-slate-500 font-medium',
     },
@@ -132,23 +154,15 @@ export default function RecentInspectionsTable() {
       render: (_, row) => (
         <div className="flex items-center justify-center">
           <ActionMenu
-            row={row}
-            actions={[
-              {
-                label: 'Lihat Detail',
-                icon: Eye,
-                onClick: (r) => alert(`Detail SPB: ${r.id} - ${r.vessel}`),
-              },
-            ]}
-            onEdit={(r) => alert(`Edit SPB: ${r.id}`)}
-            onDelete={(r) => alert(`Hapus SPB: ${r.id}`)}
+            row={row.raw}
+            onView={(r) => r?.id_manifest && navigate(`/manifest/detail/${r.id_manifest}`)}
+            onEdit={(r) => r?.id_manifest && navigate(`/manifest/edit/${r.id_manifest}`)}
           />
         </div>
       ),
     },
   ];
 
-  // Custom Header Filters Action for DataTable Toolbar
   const filterActions = (
     <div className="flex items-center gap-1.5 overflow-x-auto">
       <Filter size={14} className="text-slate-400 mr-1 shrink-0" />
@@ -179,7 +193,7 @@ export default function RecentInspectionsTable() {
             Aktivitas Inspeksi & Clearance Terbaru
           </h3>
           <p className="text-xs text-slate-400 mt-0.5">
-            Daftar permohonan Surat Persetujuan Berlayar (SPB) KSOP
+            Daftar permohonan clearance dan inspeksi KSOP
           </p>
         </div>
       </div>
@@ -188,11 +202,12 @@ export default function RecentInspectionsTable() {
       <DataTable
         columns={columns}
         data={filteredData}
-        searchPlaceholder="Cari Kapal, No. SPB, Agen..."
+        isLoading={isLoading}
+        searchPlaceholder="Cari Kapal, No. Register, Agen..."
         actions={filterActions}
         pageSize={5}
+        emptyMessage="Belum ada aktivitas inspeksi pelayaran"
       />
     </div>
   );
 }
-

@@ -1,5 +1,6 @@
 const { kecamatan, kabupaten } = require("../model/association");
 const { Op } = require("sequelize");
+const { createLog } = require("../utils/logHelper");
 
 const getKecamatan = async (req, res) => {
   let search = (req.query.search || "").trim();
@@ -26,6 +27,7 @@ const storeKecamatan = async (req, res) => {
       nama_kecamatan: nama_kecamatan.trim(),
       id_kabupaten: id_kabupaten || null,
     });
+    await createLog(req, "CREATE", "Kecamatan", `Menambahkan master kecamatan baru: '${newKec.nama_kecamatan}'`);
     return res.status(200).json({ msg: "Berhasil menambahkan data kecamatan", data: newKec });
   } catch (error) {
     console.error("STORE KECAMATAN ERROR:", error);
@@ -46,6 +48,7 @@ const updateKecamatan = async (req, res) => {
     );
     if (updatedCount === 0) return res.status(404).json({ msg: "Data tidak ditemukan" });
 
+    await createLog(req, "UPDATE", "Kecamatan", `Memperbarui data kecamatan ID: ${id} ('${nama_kecamatan.trim()}')`);
     return res.status(200).json({ msg: "Berhasil memperbarui data kecamatan" });
   } catch (error) {
     console.error("UPDATE KECAMATAN ERROR:", error);
@@ -61,6 +64,7 @@ const deleteKecamatan = async (req, res) => {
     if (!target) return res.status(404).json({ msg: "Data kecamatan tidak ditemukan" });
 
     await target.destroy();
+    await createLog(req, "DELETE", "Kecamatan", `Menghapus data kecamatan: '${target.nama_kecamatan}' (ID: ${id})`);
     return res.status(200).json({ msg: "Berhasil menghapus data kecamatan" });
   } catch (error) {
     console.error("DELETE KECAMATAN ERROR:", error);

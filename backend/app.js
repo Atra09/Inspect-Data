@@ -18,12 +18,12 @@ const kapalRouter = require('./routes/kapal');
 const agenRouter = require('./routes/agen');
 const nahkodaRouter = require('./routes/nahkoda');
 const pelabuhanRouter = require('./routes/pelabuhan');
-const spbAsalRouter = require('./routes/spbAsal');
 const negaraRouter = require('./routes/negara');
 const provinsiRouter = require('./routes/provinsi');
 const kabupatenRouter = require('./routes/kabupaten');
 const kecamatanRouter = require('./routes/kecamatan');
 const penumpangRouter = require('./routes/penumpang');
+const logAktivitasRouter = require('./routes/logAktivitas');
 
 const app = express();
 
@@ -69,12 +69,12 @@ app.use('/api/kapal', kapalRouter);
 app.use('/api/agen', agenRouter);
 app.use('/api/nahkoda', nahkodaRouter);
 app.use('/api/pelabuhan', pelabuhanRouter);
-app.use('/api/spb-asal', spbAsalRouter);
 app.use('/api/negara', negaraRouter);
 app.use('/api/provinsi', provinsiRouter);
 app.use('/api/kabupaten', kabupatenRouter);
 app.use('/api/kecamatan', kecamatanRouter);
 app.use('/api/penumpang', penumpangRouter);
+app.use('/api/log-aktivitas', logAktivitasRouter);
 
 
 

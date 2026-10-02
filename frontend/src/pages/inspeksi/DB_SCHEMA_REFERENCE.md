@@ -56,25 +56,10 @@
 | `createdAt` | `datetime` | NO | - | null | - |
 | `updatedAt` | `datetime` | NO | - | null | - |
 
-### 📋 Tabel: `log_users` (Total Data: 0 baris)
-| Field | Type | Null | Key | Default | Extra |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `id_log_user` | `int` | NO | PRI | null | auto_increment |
-| `waktu` | `time` | YES | - | null | - |
-| `tanggal` | `date` | YES | - | null | - |
-| `username` | `varchar(255)` | YES | - | null | - |
-| `aksi` | `enum('CREATE','UPDATE','DELETE','LOGIN')` | YES | - | null | - |
-| `jenis_data` | `varchar(255)` | YES | - | null | - |
-| `data_diubah` | `varchar(255)` | YES | - | null | - |
-| `createdAt` | `datetime` | NO | - | null | - |
-| `updatedAt` | `datetime` | NO | - | null | - |
-
 ### 📋 Tabel: `manifest` (Total Data: 0 baris)
 | Field | Type | Null | Key | Default | Extra |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `id_manifest` | `int` | NO | PRI | null | auto_increment |
-| `ppk` | `enum('27','29')` | YES | - | null | - |
-| `id_spb` | `int` | YES | MUL | null | - |
 | `no_urut` | `varchar(255)` | YES | - | null | - |
 | `id_kapal` | `int` | YES | MUL | null | - |
 | `id_nahkoda` | `int` | YES | MUL | null | - |
@@ -130,18 +115,10 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `id_spb` | `int` | NO | PRI | null | auto_increment |
 | `no_spb` | `varchar(255)` | YES | - | null | - |
-| `no_spb_asal` | `varchar(255)` | YES | - | null | - |
 | `createdAt` | `datetime` | NO | - | null | - |
 | `updatedAt` | `datetime` | NO | - | null | - |
 
-### 📋 Tabel: `spb_asal` (Total Data: 3 baris)
-| Field | Type | Null | Key | Default | Extra |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `id_spb_asal` | `int` | NO | PRI | null | auto_increment |
-| `kode_spb` | `varchar(255)` | NO | - | null | - |
-| `asal` | `varchar(255)` | NO | - | null | - |
-| `createdAt` | `datetime` | NO | - | null | - |
-| `updatedAt` | `datetime` | NO | - | null | - |
+
 
 ### 📋 Tabel: `status_pelayaran` (Total Data: 3 baris)
 | Field | Type | Null | Key | Default | Extra |

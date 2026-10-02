@@ -5,8 +5,6 @@ const asal_kapal = require("./asalKapalModel");
 const agen = require("./agenModel");
 const nahkoda = require("./nahkodaModel");
 const pelabuhan = require("./pelabuhanModel");
-const spbAsal = require("./spbAsalModel");
-const spb = require("./spbModel");
 
 const negara = require("./negaraModel");
 const provinsi = require("./provinsiModel");
@@ -15,6 +13,7 @@ const kecamatan = require("./kecamatanModel");
 
 const manifest = require("./manifestModel");
 const penumpang = require("./penumpangModel");
+const logAktivitas = require("./logAktivitasModel");
 
 // Associations / Relations
 kapal.belongsTo(jenis, { foreignKey: "id_jenis", as: "jenis" });
@@ -27,7 +26,6 @@ kecamatan.belongsTo(kabupaten, { foreignKey: "id_kabupaten", as: "kabupaten" });
 manifest.belongsTo(kapal, { foreignKey: "id_kapal", as: "kapal" });
 manifest.belongsTo(nahkoda, { foreignKey: "id_nahkoda", as: "nahkoda" });
 manifest.belongsTo(agen, { foreignKey: "id_agen", as: "agen" });
-manifest.belongsTo(spb, { foreignKey: "id_spb", as: "spb" });
 
 manifest.belongsTo(pelabuhan, { foreignKey: "id_datang_dari", as: "pelabuhan_asal" });
 manifest.belongsTo(pelabuhan, { foreignKey: "id_sandar", as: "pelabuhan_sandar" });
@@ -38,6 +36,8 @@ manifest.belongsTo(pelabuhan, { foreignKey: "id_tempat_singgah", as: "pelabuhan_
 manifest.hasMany(penumpang, { foreignKey: "id_manifest", as: "penumpang_list" });
 penumpang.belongsTo(manifest, { foreignKey: "id_manifest", as: "manifest" });
 
+logAktivitas.belongsTo(users, { foreignKey: "id_user", as: "user" });
+
 module.exports = {
   users,
   kapal,
@@ -46,12 +46,11 @@ module.exports = {
   agen,
   nahkoda,
   pelabuhan,
-  spbAsal,
-  spb,
   negara,
   provinsi,
   kabupaten,
   kecamatan,
   manifest,
   penumpang,
+  logAktivitas,
 };

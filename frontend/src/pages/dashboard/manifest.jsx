@@ -109,36 +109,14 @@ export default function Manifest() {
   };
 
   // Presisi Kolom sesuai Gambar UI:
-  // NO. SPB | NO. REGISTER | NO. PPK | KAPAL | NAHKODA | TUJUAN | WAKTU BRGKT | AGEN | AKSI
+  // NO. REGISTER | KAPAL | NAHKODA | TUJUAN | WAKTU BRGKT | AGEN | AKSI
   const columns = useMemo(
     () => [
-      {
-        key: 'no_spb',
-        label: 'NO. SPB',
-        sortable: true,
-        render: (val, row) => {
-          const displaySpb = val || row.spb?.no_spb || '-';
-          return (
-            <span
-              onClick={() => handleOpenDetail(row)}
-              className="text-[#6366F1] font-semibold hover:underline cursor-pointer"
-            >
-              {displaySpb}
-            </span>
-          );
-        },
-      },
       {
         key: 'no_urut',
         label: 'NO. REGISTER',
         sortable: true,
         render: (val) => <span className="font-bold text-slate-800">{val || '-'}</span>,
-      },
-      {
-        key: 'ppk',
-        label: 'NO. PPK',
-        sortable: true,
-        render: (val) => <span className="text-slate-600 font-medium">{val || '-'}</span>,
       },
       {
         key: 'nama_kapal',
@@ -293,7 +271,7 @@ export default function Manifest() {
         columns={columns}
         data={dataList}
         isLoading={isLoading}
-        searchPlaceholder="Cari No SPB, Register, Kapal, Agen..."
+        searchPlaceholder="Cari Register, Kapal, Agen..."
         actions={
           <button
             type="button"
